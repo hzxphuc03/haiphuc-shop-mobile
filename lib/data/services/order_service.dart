@@ -23,7 +23,12 @@ class OrderService {
   Future<OrderModel> createOrder(Map<String, dynamic> orderData) async {
     try {
       final response = await _dio.post('/orders', data: orderData);
-      return OrderModel.fromJson(response.data);
+      
+      // Backend returns { message, order: {...}, checkoutUrl: "..." }
+      final orderJson = Map<String, dynamic>.from(response.data['order']);
+      orderJson['checkoutUrl'] = response.data['checkoutUrl'];
+      
+      return OrderModel.fromJson(orderJson);
     } catch (e) {
       rethrow;
     }

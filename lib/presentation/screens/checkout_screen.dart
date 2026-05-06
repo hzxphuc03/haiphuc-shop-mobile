@@ -45,18 +45,21 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
     setState(() => isSubmitting = true);
     try {
+      final user = ref.read(authProvider).user;
       final cartNotifier = ref.read(cartProvider.notifier);
       final orderData = cartNotifier.buildOrderPayload(
         depositRate: _depositRate,
         paymentMethod: _paymentMethod,
       );
 
-      // Add contact info
-      orderData['shippingAddress'] = {
+      // Add contact and user info directly to the root
+      orderData.addAll({
+        'user': user != null ? user.fullName : 'Guest',
         'fullName': _nameController.text,
-        'phone': _phoneController.text,
+        'phoneNumber': _phoneController.text,
+        'email': user?.email ?? 'guest@haiphuc.com',
         'address': _addressController.text,
-      };
+      });
 
       final order = await OrderService().createOrder(orderData);
       

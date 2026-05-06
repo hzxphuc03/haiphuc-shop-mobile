@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../data/services/auth_service.dart';
 import '../../data/models/user_model.dart';
 
@@ -54,6 +55,36 @@ class AuthNotifier extends StateNotifier<AuthState> {
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: "Đăng nhập thất bại. Vui lòng kiểm tra lại.");
+      return false;
+    }
+  }
+
+  Future<bool> loginWithGoogle() async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        scopes: ['email', 'profile'],
+      );
+      
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        state = state.copyWith(isLoading: false);
+        return false;
+      }
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final String? idToken = googleAuth.idToken;
+
+      if (idToken == null) {
+        state = state.copyWith(isLoading: false, error: "Không lấy được Token từ Google");
+        return false;
+      }
+
+      final user = await _service.googleLogin(idToken);
+      state = state.copyWith(user: user, isLoading: false, error: null);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: "Đăng nhập Google thất bại.");
       return false;
     }
   }

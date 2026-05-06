@@ -44,11 +44,31 @@ class AuthService {
   Future<UserModel?> getMe() async {
     try {
       final response = await _dio.get('/auth/me');
-      // API return format: { success: true, user: {...} } or { ...user }
-      final userData = response.data['user'] ?? response.data['data'] ?? response.data;
+      final data = response.data;
+      final userData = data['user'] ?? data['data'] ?? data;
       return UserModel.fromJson(userData);
     } catch (e) {
       return null;
+    }
+  }
+
+  Future<UserModel?> googleLogin(String idToken) async {
+    try {
+      final response = await _dio.post('/auth/google', data: {
+        'idToken': idToken,
+      });
+      
+      final data = response.data;
+      final token = data['accessToken'] ?? data['token'];
+      
+      if (token != null) {
+        await _storage.write(key: 'access_token', value: token);
+      }
+      
+      final userData = data['user'] ?? data['data'] ?? data;
+      return UserModel.fromJson(userData);
+    } catch (e) {
+      rethrow;
     }
   }
 

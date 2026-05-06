@@ -62,15 +62,16 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
   }) {
     return {
       'items': state.map((item) => {
-        'productId': item.productId,
+        '_id': item.productId,
         'quantity': item.quantity,
         'size': item.size,
         'color': item.color,
-        'price': item.price,
+        'priceVND': item.price,
+        'type': item.type,
+        'imageUrl': item.imageUrl,
       }).toList(),
-      'totalAmount': totalAmount,
       'depositRate': depositRate,
-      'paymentMethod': paymentMethod,
+      'paymentMethod': paymentMethod == 'QR' ? 'QR_CODE' : 'COD',
     };
   }
 }

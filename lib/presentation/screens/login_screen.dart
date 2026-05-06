@@ -67,6 +67,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: _LoginButton(onPressed: _handleLogin),
                 ),
                 
+                const SizedBox(height: 15),
+                RepaintBoundary(
+                  child: _GoogleLoginButton(
+                    onPressed: () => ref.read(authProvider.notifier).loginWithGoogle(),
+                  ),
+                ),
+                
                 const SizedBox(height: 20),
                 const RepaintBoundary(child: _RegisterLink()),
               ],
@@ -193,6 +200,42 @@ class _RegisterLink extends StatelessWidget {
       onPressed: () {}, 
       child: const Text('BẠN CHƯA CÓ TÀI KHOẢN? ĐĂNG KÝ NGAY', 
         style: TextStyle(color: Colors.grey, fontSize: 10))
+    );
+  }
+}
+
+class _GoogleLoginButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  const _GoogleLoginButton({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 55,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Colors.white24),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min, // Căn giữa thu nhỏ theo nội dung
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.network(
+              'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png', // Link chính chủ Google
+              height: 22,
+            ),
+            const SizedBox(width: 12),
+            const Flexible(
+              child: Text('ĐĂNG NHẬP VỚI GOOGLE', 
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1, fontSize: 13),
+                overflow: TextOverflow.ellipsis),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
