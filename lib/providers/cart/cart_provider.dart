@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../data/models/product_model.dart';
 
 class CartItem {
@@ -21,10 +23,54 @@ class CartItem {
     required this.imageUrl,
     this.quantity = 1,
   });
+
+  Map<String, dynamic> toJson() => {
+    'productId': productId,
+    'name': name,
+    'price': price,
+    'size': size,
+    'color': color,
+    'type': type,
+    'imageUrl': imageUrl,
+    'quantity': quantity,
+  };
+
+  factory CartItem.fromJson(Map<String, dynamic> map) => CartItem(
+    productId: map['productId'],
+    name: map['name'],
+    price: (map['price'] as num).toDouble(),
+    size: map['size'],
+    color: map['color'],
+    type: map['type'],
+    imageUrl: map['imageUrl'],
+    quantity: map['quantity'] ?? 1,
+  );
 }
 
 class CartNotifier extends StateNotifier<List<CartItem>> {
-  CartNotifier() : super([]);
+  final _storage = const FlutterSecureStorage();
+  static const _storageKey = 'cart_items';
+
+  CartNotifier() : super([]) {
+    loadCart();
+  }
+
+  Future<void> loadCart() async {
+    try {
+      final data = await _storage.read(key: _storageKey);
+      if (data != null) {
+        final List<dynamic> jsonList = jsonDecode(data);
+        state = jsonList.map((item) => CartItem.fromJson(item)).toList();
+      }
+    } catch (e) {
+      state = [];
+    }
+  }
+
+  Future<void> _saveCart() async {
+    final jsonList = state.map((item) => item.toJson()).toList();
+    await _storage.write(key: _storageKey, value: jsonEncode(jsonList));
+  }
 
   void addToCart(ProductModel product, {required String size, required String color}) {
     final index = state.indexWhere((item) => 
@@ -52,20 +98,24 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
         imageUrl: imageUrl,
       )];
     }
+    _saveCart();
   }
 
   void updateQuantity(int index, int delta) {
     state[index].quantity += delta;
     if (state[index].quantity < 1) state[index].quantity = 1;
     state = [...state];
+    _saveCart();
   }
 
   void removeFromCart(int index) {
     state = [...state]..removeAt(index);
+    _saveCart();
   }
 
   void clear() {
     state = [];
+    _saveCart();
   }
 
   double get totalAmount => state.fold(0, (sum, item) => sum + (item.price * item.quantity));
