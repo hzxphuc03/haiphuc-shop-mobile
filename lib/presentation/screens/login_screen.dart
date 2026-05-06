@@ -89,9 +89,14 @@ class _LoginHeader extends StatelessWidget {
   const _LoginHeader();
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       children: [
-        Text('HAIPHUC SHOP', 
+        Image.asset(
+          'assets/images/logo.png',
+          height: 100,
+        ),
+        const SizedBox(height: 20),
+        const Text('HAIPHUC SHOP', 
           style: TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic)),
         SizedBox(height: 10),
         Text('AUTHENTICATION', 
