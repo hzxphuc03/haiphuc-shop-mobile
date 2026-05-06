@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
+import '../widgets/custom_add_to_cart_button.dart';
 import '../../providers/cart/cart_provider.dart';
 import '../../data/models/product_model.dart';
 
@@ -119,13 +120,39 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
               controller: _pageController,
               onPageChanged: (index) => setState(() => currentImageIndex = index),
               itemCount: widget.product.images.length,
-              itemBuilder: (context, index) => CachedNetworkImage(
-                imageUrl: widget.product.images[index].url,
-                fit: BoxFit.cover,
-                // Optimization: Limit image decode size to avoid memory overflow
-                memCacheHeight: 800, 
-                placeholder: (context, url) => Container(color: Colors.grey[900]),
-              ),
+              itemBuilder: (context, index) {
+                final imageWidget = Image.network(
+                  widget.product.images[index].url,
+                  fit: BoxFit.cover,
+                  gaplessPlayback: true,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      color: Colors.grey[900],
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                              : null,
+                          strokeWidth: 2,
+                        ),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    color: Colors.red.withOpacity(0.1),
+                    child: const Icon(Icons.error_outline, color: Colors.red, size: 40),
+                  ),
+                );
+
+                if (index == 0) {
+                  return Hero(
+                    tag: 'product-image-${widget.product.id}',
+                    child: imageWidget,
+                  );
+                }
+                return imageWidget;
+              },
             ),
             _ImageIndicator(count: widget.product.images.length, currentIndex: currentImageIndex),
           ],
@@ -148,8 +175,14 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
           ],
         ),
         const SizedBox(height: 12),
-        Text(widget.product.name.toUpperCase(), 
-          style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic, height: 1.1)),
+        Hero(
+          tag: 'product-title-${widget.product.id}',
+          child: Material(
+            color: Colors.transparent,
+            child: Text(widget.product.name.toUpperCase(), 
+              style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic, height: 1.1)),
+          ),
+        ),
         const SizedBox(height: 16),
         Text('${widget.product.priceVND.toInt()}đ', 
           style: const TextStyle(color: Color(0xFFD2FF1F), fontSize: 30, fontWeight: FontWeight.w900)),
@@ -264,29 +297,18 @@ class _BottomActionBar extends ConsumerWidget {
           color: Colors.black.withOpacity(0.9),
           border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05))),
         ),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 2,
-              child: _ActionButton(
-                label: 'GIỎ HÀNG',
-                isPrimary: false,
-                onPressed: !canAction ? null : () {
-                  ref.read(cartProvider.notifier).addToCart(product, size: selectedSize ?? 'S', color: selectedColor ?? 'Default');
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã thêm vào giỏ hàng')));
-                },
+        child: CustomAddToCartButton(
+          label: 'THÊM VÀO GIỎ HÀNG',
+          onPressed: !canAction ? null : () {
+            ref.read(cartProvider.notifier).addToCart(product, size: selectedSize ?? 'S', color: selectedColor ?? 'Default');
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                backgroundColor: const Color(0xFFD2FF1F),
+                behavior: SnackBarBehavior.floating,
+                content: Text('Đã thêm ${product.name} vào giỏ hàng', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              flex: 3,
-              child: _ActionButton(
-                label: 'MUA NGAY',
-                isPrimary: true,
-                onPressed: !canAction ? null : () => context.push('/checkout'),
-              ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );

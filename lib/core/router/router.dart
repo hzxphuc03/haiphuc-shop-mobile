@@ -9,6 +9,7 @@ import '../../presentation/screens/cart_screen.dart';
 import '../../presentation/screens/checkout_screen.dart';
 import '../../presentation/screens/order_history_screen.dart';
 import '../../presentation/screens/profile_screen.dart';
+import '../../presentation/screens/order_success_screen.dart';
 import '../../presentation/widgets/main_layout.dart';
 import '../../data/models/product_model.dart';
 
@@ -73,12 +74,28 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/product/:id',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final product = state.extra as ProductModel;
-          return ProductDetailScreen(product: product);
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: ProductDetailScreen(product: product),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return FadeTransition(
+                opacity: CurveTween(curve: Curves.easeInOut).animate(animation),
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 0.05),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                ),
+              );
+            },
+          );
         },
       ),
       GoRoute(path: '/checkout', builder: (context, state) => const CheckoutScreen()),
+      GoRoute(path: '/order-success', builder: (context, state) => const OrderSuccessScreen()),
     ],
   );
 });

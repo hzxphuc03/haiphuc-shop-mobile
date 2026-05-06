@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import '../widgets/product_skeletal_loading.dart';
 import '../../providers/product/product_provider.dart';
 import '../../data/models/product_model.dart';
 
@@ -101,24 +103,32 @@ class _ProductGrid extends ConsumerWidget {
           }
           return false;
         },
-        child: GridView.builder(
-          padding: const EdgeInsets.all(16),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.65,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 16,
+        child: AnimationLimiter(
+          child: GridView.builder(
+            padding: const EdgeInsets.all(16),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.65,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 16,
+            ),
+            itemCount: items.length + (hasMore ? 2 : 0),
+            itemBuilder: (context, index) {
+              if (index >= items.length) {
+                return isLoading ? const _LoadingCard() : const SizedBox.shrink();
+              }
+              return AnimationConfiguration.staggeredGrid(
+                position: index,
+                duration: const Duration(milliseconds: 500),
+                columnCount: 2,
+                child: ScaleAnimation(
+                  child: FadeInAnimation(
+                    child: _ProductCard(product: items[index]),
+                  ),
+                ),
+              );
+            },
           ),
-          itemCount: items.length + (hasMore ? 2 : 0),
-          itemBuilder: (context, index) {
-            if (index >= items.length) {
-              return isLoading ? const _LoadingCard() : const SizedBox.shrink();
-            }
-            // Optimization: Wrap with RepaintBoundary at grid item level
-            return RepaintBoundary(
-              child: _ProductCard(product: items[index]),
-            );
-          },
         ),
       ),
     );
@@ -139,20 +149,38 @@ class _ProductCard extends StatelessWidget {
           Expanded(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(2),
-              child: CachedNetworkImage(
-                imageUrl: product.images.first.url,
-                fit: BoxFit.cover,
-                memCacheHeight: 450, // Critical for RAM/UI thread optimization
-                placeholder: (context, url) => Container(color: Colors.white.withOpacity(0.05)),
+              child: Hero(
+                tag: 'product-image-${product.id}',
+                child: Image.network(
+                  product.images.isEmpty ? '' : product.images.first.url,
+                  fit: BoxFit.cover,
+                  gaplessPlayback: true,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      color: Colors.white.withOpacity(0.05),
+                      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    color: Colors.red.withOpacity(0.1),
+                    child: const Icon(Icons.error_outline, color: Colors.red),
+                  ),
+                ),
               ),
             ),
           ),
           const SizedBox(height: 8),
-          // Optimization: Use pre-computed displayName
-          Text(product.displayName,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+          Hero(
+            tag: 'product-title-${product.id}',
+            child: Material(
+              color: Colors.transparent,
+              child: Text(product.displayName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+            ),
+          ),
           const SizedBox(height: 2),
           // Optimization: Use pre-computed displayPrice
           Text(product.displayPrice,
@@ -185,10 +213,6 @@ class _LoadingCard extends StatelessWidget {
   const _LoadingCard();
   @override
   Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: Colors.white.withOpacity(0.05),
-      highlightColor: Colors.white.withOpacity(0.1),
-      child: Container(color: Colors.white),
-    );
+    return const ProductSkeletalLoading();
   }
 }

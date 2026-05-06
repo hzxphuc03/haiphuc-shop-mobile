@@ -30,6 +30,7 @@ class ProductListState {
     bool? hasMore,
     String? category,
     String? search,
+    bool clearSearch = false,
     String? error,
   }) {
     return ProductListState(
@@ -38,7 +39,7 @@ class ProductListState {
       currentPage: currentPage ?? this.currentPage,
       hasMore: hasMore ?? this.hasMore,
       category: category ?? this.category,
-      search: search ?? this.search,
+      search: clearSearch ? null : (search ?? this.search),
       error: error,
     );
   }
@@ -86,7 +87,7 @@ class ProductListNotifier extends StateNotifier<ProductListState> {
 
   void setCategory(String category) {
     if (state.category == category) return;
-    state = state.copyWith(category: category, search: null); // Clear search when switching category
+    state = state.copyWith(category: category, clearSearch: true); // Correctly nullify search
     fetchProducts(refresh: true);
   }
 
@@ -96,6 +97,7 @@ class ProductListNotifier extends StateNotifier<ProductListState> {
     // Force reset state for a clean fetch
     state = state.copyWith(
       search: searchQuery,
+      clearSearch: searchQuery == null,
       category: 'Tất cả',
       currentPage: 1,
       hasMore: true,

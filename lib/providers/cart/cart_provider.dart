@@ -30,6 +30,14 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
     final index = state.indexWhere((item) => 
       item.productId == product.id && item.size == size && item.color == color);
     
+    String imageUrl = '';
+    if (product.images.isNotEmpty) {
+      imageUrl = product.images.firstWhere(
+        (img) => img.color.toLowerCase() == color.toLowerCase(),
+        orElse: () => product.images.first,
+      ).url;
+    }
+
     if (index >= 0) {
       state[index].quantity++;
       state = [...state];
@@ -41,9 +49,15 @@ class CartNotifier extends StateNotifier<List<CartItem>> {
         size: size,
         color: color,
         type: product.type,
-        imageUrl: product.images.first.url,
+        imageUrl: imageUrl,
       )];
     }
+  }
+
+  void updateQuantity(int index, int delta) {
+    state[index].quantity += delta;
+    if (state[index].quantity < 1) state[index].quantity = 1;
+    state = [...state];
   }
 
   void removeFromCart(int index) {

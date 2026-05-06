@@ -71,10 +71,16 @@ class _MainLayoutState extends ConsumerState<MainLayout> with SingleTickerProvid
         backgroundColor: Colors.black,
         elevation: 0,
         centerTitle: !isHome,
+        leading: isHome ? null : IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => _onItemTapped(0),
+        ),
         title: _isSearching && isHome
           ? TextField(
               controller: _searchController,
               autofocus: true,
+              keyboardType: TextInputType.text,
+              enableSuggestions: true,
               style: const TextStyle(color: Colors.white),
               decoration: const InputDecoration(
                 hintText: 'Tìm kiếm sản phẩm...',
@@ -108,10 +114,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> with SingleTickerProvid
           if (!_isSearching && isHome) _buildCartBadge(context, cartCount),
         ],
       ),
-      body: FadeTransition(
-        opacity: _fadeController,
-        child: widget.navigationShell,
-      ),
+      body: widget.navigationShell,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: selectedIndex,
         onTap: _onItemTapped,
@@ -138,7 +141,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> with SingleTickerProvid
       children: [
         IconButton(
           icon: const Icon(Icons.shopping_bag_outlined),
-          onPressed: () => context.push('/cart'),
+          onPressed: () => _onItemTapped(2),
         ),
         if (count > 0)
           Positioned(

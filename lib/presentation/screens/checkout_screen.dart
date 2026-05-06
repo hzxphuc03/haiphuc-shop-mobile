@@ -72,7 +72,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
       ref.read(cartProvider.notifier).clear();
       if (mounted) {
-        context.go('/orders');
+        context.go('/order-success');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
@@ -97,11 +97,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           children: [
             const Text('THÔNG TIN GIAO HÀNG', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
-            _buildTextField(_nameController, 'Họ và tên'),
+            _buildTextField(_nameController, 'Họ và tên', keyboardType: TextInputType.name),
             const SizedBox(height: 15),
-            _buildTextField(_phoneController, 'Số điện thoại'),
+            _buildTextField(_phoneController, 'Số điện thoại', keyboardType: TextInputType.phone),
             const SizedBox(height: 15),
-            _buildTextField(_addressController, 'Địa chỉ nhận hàng', maxLines: 2),
+            _buildTextField(_addressController, 'Địa chỉ nhận hàng', maxLines: 2, keyboardType: TextInputType.streetAddress),
             const SizedBox(height: 30),
             
             const Text('PHƯƠNG THỨC THANH TOÁN', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -144,9 +144,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, {int maxLines = 1}) {
+  Widget _buildTextField(TextEditingController controller, String label, {int maxLines = 1, TextInputType? keyboardType}) {
     return TextFormField(
       controller: controller,
+      keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(color: Colors.grey),

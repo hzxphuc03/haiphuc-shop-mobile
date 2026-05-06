@@ -11,19 +11,9 @@ class ProfileScreen extends ConsumerWidget {
     final authState = ref.watch(authProvider);
     final user = authState.user;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: const Text('TÀI KHOẢN', style: TextStyle(fontWeight: FontWeight.bold)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.red),
-            onPressed: () => _showLogoutDialog(context, ref),
-          ),
-        ],
-      ),
-      body: user == null 
+    return Container(
+      color: Colors.black,
+      child: user == null 
         ? const Center(child: CircularProgressIndicator())
         : ListView(
             padding: const EdgeInsets.all(20),
@@ -52,15 +42,17 @@ class ProfileScreen extends ConsumerWidget {
               const Text('HỖ TRỢ', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
               _buildMenuItem(Icons.help_outline, 'Trung tâm trợ giúp', () {}),
               _buildMenuItem(Icons.info_outline, 'Về Haiphuc Shop', () {}),
+              const SizedBox(height: 20),
+              _buildMenuItem(Icons.logout, 'Đăng xuất', () => _showLogoutDialog(context, ref), color: Colors.red),
             ],
           ),
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String title, VoidCallback onTap) {
+  Widget _buildMenuItem(IconData icon, String title, VoidCallback onTap, {Color color = Colors.white}) {
     return ListTile(
-      leading: Icon(icon, color: Colors.white),
-      title: Text(title, style: const TextStyle(color: Colors.white)),
+      leading: Icon(icon, color: color),
+      title: Text(title, style: TextStyle(color: color)),
       trailing: const Icon(Icons.chevron_right, color: Colors.white24),
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(vertical: 4),

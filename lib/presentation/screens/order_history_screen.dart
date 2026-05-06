@@ -21,33 +21,43 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> with Au
     final state = ref.watch(orderListProvider);
 
     if (state.isLoading && state.orders.isEmpty) {
-      return const Center(child: CircularProgressIndicator(color: Color(0xFFD2FF1F)));
+      return Container(
+        color: Colors.black,
+        child: const Center(child: CircularProgressIndicator(color: Color(0xFFD2FF1F))),
+      );
     }
 
     if (state.error != null && state.orders.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, color: Colors.red, size: 40),
-            const SizedBox(height: 16),
-            const Text('Không thể tải đơn hàng', style: TextStyle(color: Colors.white70)),
-            TextButton(
-              onPressed: () => ref.read(orderListProvider.notifier).fetchOrders(),
-              child: const Text('THỬ LẠI', style: TextStyle(color: Color(0xFFD2FF1F))),
-            )
-          ],
+      return Container(
+        color: Colors.black,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, color: Colors.red, size: 40),
+              const SizedBox(height: 16),
+              const Text('Không thể tải đơn hàng', style: TextStyle(color: Colors.white70)),
+              TextButton(
+                onPressed: () => ref.read(orderListProvider.notifier).fetchOrders(),
+                child: const Text('THỬ LẠI', style: TextStyle(color: Color(0xFFD2FF1F))),
+              )
+            ],
+          ),
         ),
       );
     }
 
     if (state.orders.isEmpty) {
-      return const Center(
-        child: Text('Chưa có đơn hàng nào', style: TextStyle(color: Colors.white38, fontSize: 16)),
+      return Container(
+        color: Colors.black,
+        child: const Center(
+          child: Text('Chưa có đơn hàng nào', style: TextStyle(color: Colors.white38, fontSize: 16)),
+        ),
       );
     }
 
-    return RepaintBoundary(
+    return Container(
+      color: Colors.black,
       child: RefreshIndicator(
         color: const Color(0xFFD2FF1F),
         onRefresh: () => ref.read(orderListProvider.notifier).fetchOrders(),
